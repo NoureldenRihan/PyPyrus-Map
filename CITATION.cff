@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use PyPyrus Map in your research, please cite it as below."
+type: software
+title: "PyPyrus Map"
+abstract: "A Python tool for visualizing metabolic reaction neighborhoods in COBRApy-compatible genome-scale models. Generates publication-quality figures of metabolite neighborhoods including heterologous and non-native pathways, with optional flux overlay from FBA solutions."
+authors:
+  - family-names: Rihan
+    given-names: Nourelden
+    orcid: https://orcid.org/0009-0005-0466-8029
+version: 0.1.0
+date-released: "2026-03-05"
+license: MIT
+repository-code: https://github.com/NoureldenRihan/PyPyrus-Map
+url: https://github.com/NoureldenRihan/PyPyrus-Map
+doi: 10.5281/zenodo.18870983
+keywords:
+  - metabolic engineering
+  - genome-scale model
+  - COBRApy
+  - flux balance analysis
+  - metabolic visualization
+  - synthetic biology
+  - bioinformatics
+acknowledgements: >
+  PyPyrus Map was developed with the assistance of Claude (Anthropic),
+  a large language model used for code generation and implementation.
+  All research direction, architectural decisions, and feature design
+  were conceived and directed by the author. Developed as part of
+  Project Menhed, an in silico metabolic engineering initiative
+  targeting lycopene biosynthesis optimization.
