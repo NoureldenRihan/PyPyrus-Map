@@ -55,19 +55,19 @@ import cobra
 from pypyrus_map import PyPyrusMap
 
 # Load any COBRApy-compatible genome-scale model
-model = cobra.io.load_json_model("iML1515.json")
+model = cobra.io.load_model("iML1515")
 solution = model.optimize()
 
 # Create a session and explore a metabolite neighborhood
 session = PyPyrusMap(model, solution=solution)
-session.add("ggpp_c")
+session.add("ipdp_c")
 
-fig = session.render(title="GGPP Neighborhood")
+fig = session.render(title="IPP Neighborhood")
 fig.show()
 
 # Export publication-quality vector figures
-session.export("ggpp_neighborhood.svg")
-session.export("ggpp_neighborhood.pdf")
+session.export("ipp_neighborhood.svg")
+session.export("ipp_neighborhood.pdf")
 ```
 
 ---
@@ -127,7 +127,6 @@ fig = session.render(
 | **Deep blue square**                  | Focal metabolite (anchor)         |
 | **Sky blue square**                   | Neighbor metabolite               |
 | **Amber diamond**                     | Reaction                          |
-| **Amber diamond, thick black border** | Reaction with zero flux (blocked) |
 | **Teal-green arrow**                  | Produces (reaction → metabolite)  |
 | **Magenta-pink arrow**                | Consumes (metabolite → reaction)  |
 | **Double-headed arrow**               | Reversible reaction               |
@@ -142,7 +141,7 @@ When a `cobra.Solution` is passed at session construction, flux values are attac
 ```python
 solution = model.optimize()
 session = PyPyrusMap(model, solution=solution)
-session.add("ggpp_c")
+session.add("ipp_c")
 
 # Show flux values on edges
 fig = session.render(show_flux_labels=True)
@@ -244,3 +243,4 @@ PyPyrus Map was built as part of [Project Menhed](https://djosergenomics.github.
 ## License
 
 MIT License — Copyright (c) 2026 Nourelden Rihan. See [LICENSE](LICENSE) for details.
+
