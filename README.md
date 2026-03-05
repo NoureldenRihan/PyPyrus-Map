@@ -66,8 +66,8 @@ fig = session.render(title="IPP Neighborhood")
 fig.show()
 
 # Export publication-quality vector figures
-session.export("ipp_neighborhood.svg")
-session.export("ipp_neighborhood.pdf")
+session.export("ipdp_neighborhood.svg")
+session.export("ipdp_neighborhood.pdf")
 ```
 
 ---
@@ -141,7 +141,7 @@ When a `cobra.Solution` is passed at session construction, flux values are attac
 ```python
 solution = model.optimize()
 session = PyPyrusMap(model, solution=solution)
-session.add("ipp_c")
+session.add("ipdp_c")
 
 # Show flux values on edges
 fig = session.render(show_flux_labels=True)
@@ -243,4 +243,5 @@ PyPyrus Map was built as part of [Project Menhed](https://djosergenomics.github.
 ## License
 
 MIT License — Copyright (c) 2026 Nourelden Rihan. See [LICENSE](LICENSE) for details.
+
 
