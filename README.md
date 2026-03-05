@@ -1,5 +1,8 @@
 # PyPyrus Map
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18870983.svg)](https://doi.org/10.5281/zenodo.18870983)
+[![PyPI](https://img.shields.io/pypi/v/pypyrus-map)](https://pypi.org/project/pypyrus-map/)
+
 **Metabolic neighborhood visualization for COBRApy genome-scale models.**
 
 PyPyrus Map lets you instantly visualize the full reaction neighborhood of any metabolite in a COBRApy-compatible genome-scale model, including heterologous and non-native pathways that curated databases like Escher cannot represent. Output is publication-quality vector figures (SVG, PDF) suitable for direct journal submission.
@@ -241,6 +244,7 @@ PyPyrus Map was built as part of [Project Menhed](https://djosergenomics.github.
 ## License
 
 MIT License — Copyright (c) 2026 Nourelden Rihan. See [LICENSE](LICENSE) for details.
+
 
 
 
