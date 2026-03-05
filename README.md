@@ -222,13 +222,11 @@ pytest tests/ -v
 
 ---
 
-## Citing PyPyrusMap
+## Citing PyPyrus Map
 
-If PyPyrusMap contributes to a published work, please cite:
+If PyPyrus Map contributes to a published work, please cite:
 
-> Rihan, N. _PyPyrus Map: Metabolic neighborhood visualization for COBRApy genome-scale models._ GitHub, 2026. https://github.com/NoureldenRihan/PyPyrus-Map
-
-A Zenodo DOI and formal citation file (CITATION.cff) will be added shortly.
+> Rihan, N. *PyPyrus Map: Metabolic neighborhood visualization for COBRApy genome-scale models.* (2026). DOI: 10.5281/zenodo.18870983
 
 ---
 
@@ -243,5 +241,6 @@ PyPyrus Map was built as part of [Project Menhed](https://djosergenomics.github.
 ## License
 
 MIT License — Copyright (c) 2026 Nourelden Rihan. See [LICENSE](LICENSE) for details.
+
 
 
