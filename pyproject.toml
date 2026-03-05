@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pypyrus-map"
+version = "0.1.0"
+description = "Metabolic neighborhood visualization for COBRApy genome-scale models"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Nourelden Rihan" }
+]
+keywords = [
+    "metabolic engineering",
+    "synthetic biology",
+    "COBRApy",
+    "genome-scale model",
+    "flux balance analysis",
+    "metabolomics",
+    "bioinformatics",
+    "networkx",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+
+dependencies = [
+    "cobra>=0.26",
+    "networkx>=3.0",
+    "matplotlib>=3.7",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# Recommended for publication-quality layouts
+graphviz = [
+    "pygraphviz>=1.11",
+]
+# Alternative Graphviz binding (if pygraphviz fails to compile on your platform)
+pydot = [
+    "pydot>=2.0",
+]
+# Full install with both layout options
+full = [
+    "pygraphviz>=1.11",
+    "pydot>=2.0",
+]
+# Development dependencies
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "black>=23.0",
+    "ruff>=0.1",
+    "mypy>=1.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/NoureldenRihan/PyPyrus-Map"
+Documentation = "https://github.com/NoureldenRihan/PyPyrus-Map#readme"
+"Bug Tracker" = "https://github.com/NoureldenRihan/PyPyrus-Map/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pypyrus_map*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+strict = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short -v"
