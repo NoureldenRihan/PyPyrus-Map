@@ -172,26 +172,29 @@ def _compute_layout(
     """
     Compute 2D node positions.
 
-    For 'dot' layout: node width/height are passed to Graphviz so it spaces
-    nodes to prevent overlap. This is the canonical fix for canvas cramping.
+    For 'dot' layout: tries pydot (pure Python, works on all platforms).
+    Falls back to spring layout if Graphviz is not installed.
 
-    For spring/circular: standard NetworkX layout (no size awareness).
+    For spring/circular: standard NetworkX layout.
     """
     rankdir = "TB" if orientation == "portrait" else "LR"
 
     if layout == "dot":
         try:
-            pos = _dot_layout_with_sizes(g, rankdir, label_mode)
+            pos = _dot_layout_pydot(g, rankdir, label_mode)
             if pos:
                 return pos
-        except Exception as exc:
-            warnings.warn(
-                f"Graphviz sized layout failed ({exc}). "
-                "Falling back to spring layout.\n"
-                "For publication figures: "
-                "apt-get install graphviz graphviz-dev && pip install pygraphviz",
-                UserWarning, stacklevel=3,
-            )
+        except Exception:
+            pass
+
+        warnings.warn(
+            "Graphviz dot layout unavailable — falling back to spring layout.\n"
+            "For publication-quality figures:\n"
+            "  1. Install Graphviz from https://graphviz.org/download/\n"
+            "     (tick 'Add to PATH' on Windows)\n"
+            "  2. pip install pydot",
+            UserWarning, stacklevel=3,
+        )
 
     if layout in ("dot", "spring"):
         return nx.spring_layout(g, seed=42, k=3.5)
@@ -200,54 +203,58 @@ def _compute_layout(
     return nx.spring_layout(g, seed=42, k=3.5)
 
 
-def _dot_layout_with_sizes(
+def _dot_layout_pydot(
     g: nx.DiGraph,
     rankdir: str,
     label_mode: str,
 ) -> dict[str, tuple[float, float]]:
     """
-    Run Graphviz dot layout with per-node width/height set from label sizes.
-
-    Graphviz expects dimensions in inches. We convert from points (÷72)
-    and add _GV_NODE_MARGIN so nodes have breathing room between them.
-
-    Returns position dict {node_id: (x, y)} in Matplotlib data coordinates.
+    Dot layout via pydot — pure Python, works on all platforms.
+    Requires: pip install pydot  +  Graphviz in system PATH.
+    Node sizes passed as width/height so dot spaces nodes correctly.
     """
-    import pygraphviz as pgv
-
-    A = pgv.AGraph(directed=True, strict=False)
-    A.graph_attr.update(
-        rankdir=rankdir,
-        splines="spline",     # curved edges around nodes
-        nodesep="0.6",        # minimum separation between nodes (inches)
-        ranksep="0.8",        # minimum separation between ranks (inches)
-    )
-    A.node_attr.update(
-        shape="box",
-        fixedsize="true",     # CRITICAL — tells dot to respect our w/h exactly
-    )
+    import pydot
 
     PT_TO_IN = 1.0 / 72.0
+
+    graph = pydot.Dot(
+        graph_type="digraph",
+        rankdir=rankdir,
+        splines="spline",
+        nodesep="0.6",
+        ranksep="0.8",
+    )
 
     for node_id in g.nodes:
         w_pt, h_pt = _node_dimensions(node_id, g, label_mode)
         w_in = w_pt * PT_TO_IN + _GV_NODE_MARGIN
         h_in = h_pt * PT_TO_IN + _GV_NODE_MARGIN
-        A.add_node(node_id, width=f"{w_in:.4f}", height=f"{h_in:.4f}")
+        graph.add_node(pydot.Node(
+            f'"{node_id}"',
+            shape="box",
+            fixedsize="true",
+            width=f"{w_in:.4f}",
+            height=f"{h_in:.4f}",
+        ))
 
     for src, tgt in g.edges():
-        A.add_edge(src, tgt)
+        graph.add_edge(pydot.Edge(f'"{src}"', f'"{tgt}"'))
 
-    A.layout(prog="dot")
+    dot_output = graph.create(prog="dot", format="dot").decode("utf-8")
+    parsed = pydot.graph_from_dot_data(dot_output)
+    if not parsed:
+        return {}
 
     pos = {}
-    for node in A.nodes():
-        node_id = str(node)
-        raw = node.attr["pos"]
-        if raw:
-            x, y = raw.split(",")
+    for node in parsed[0].get_nodes():
+        node_id = node.get_name().strip('"')
+        if node_id in ("node", "graph", "edge", ""):
+            continue
+        pos_attr = node.get_pos()
+        if pos_attr:
+            coords = pos_attr.strip('"')
+            x, y = coords.split(",")
             pos[node_id] = (float(x), float(y))
-
     return pos
 
 
