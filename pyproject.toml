@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypyrus-map"
-version = "0.1.0"
+version = "0.1.1"
 description = "Metabolic neighborhood visualization for COBRApy genome-scale models"
 readme = "README.md"
 license = "MIT"
@@ -38,23 +38,10 @@ dependencies = [
     "networkx>=3.0",
     "matplotlib>=3.7",
     "numpy>=1.24",
+    "pydot>=2.0",
 ]
 
 [project.optional-dependencies]
-# Recommended for publication-quality layouts
-graphviz = [
-    "pygraphviz>=1.11",
-]
-# Alternative Graphviz binding (if pygraphviz fails to compile on your platform)
-pydot = [
-    "pydot>=2.0",
-]
-# Full install with both layout options
-full = [
-    "pygraphviz>=1.11",
-    "pydot>=2.0",
-]
-# Development dependencies
 dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",
