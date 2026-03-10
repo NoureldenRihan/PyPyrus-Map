@@ -19,16 +19,24 @@ The need was simple: given a metabolite of interest, show every reaction that pr
 
 ## Installation
 
-**Install PyPyrus Map:**
+**Step 1: Install PyPyrus Map:**
 
 ```bash
 pip install pypyrus-map
 ```
 
-**Or Install directly from GitHub:**
-
+**Step 2: Install Graphviz** (required for `layout="dot"`):
 ```bash
-pip install git+https://github.com/NoureldenRihan/PyPyrus-Map.git
+# Ubuntu / Debian 
+apt-get install graphviz
+
+# macOS
+brew install graphviz
+
+# Windows
+# Download and run the installer from https://graphviz.org/download/
+# During installation, tick "Add Graphviz to system PATH"
+# Then restart your terminal
 ```
 
 ---
