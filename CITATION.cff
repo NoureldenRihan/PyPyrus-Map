@@ -6,7 +6,7 @@ abstract: "A Python tool for visualizing metabolic reaction neighborhoods in COB
 authors:
   - family-names: Rihan
     given-names: Nourelden
-    orcid: https://orcid.org/YOUR-ORCID-HERE
+    orcid: https://orcid.org/0009-0005-0466-8029
 version: 0.1.1
 date-released: "2026-03-05"
 license: MIT
