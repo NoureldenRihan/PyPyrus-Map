@@ -73,7 +73,7 @@ RXN_LINES  =  2     # always 2 lines: reaction ID + gene names
 # Arrow clearance buffer added on top of computed half-width
 _ARROW_BUFFER = 5.0    # pt safety buffer added on top of computed visual half-width
 
-# Graphviz spacing — extra margin around each node (inches) so nodes breathe
+# Spacing — extra margin around each node (inches) so nodes breathe
 _GV_NODE_MARGIN = 0.15   # inches added to each side when telling dot node size
 
 
@@ -160,7 +160,7 @@ def _shrink_b(w_pt: float, h_pt: float) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Layout — with Graphviz node-size awareness for dot
+# Layout
 # ---------------------------------------------------------------------------
 
 def _compute_layout(
@@ -173,7 +173,6 @@ def _compute_layout(
     Compute 2D node positions.
 
     For 'dot' layout: tries pydot (pure Python, works on all platforms).
-    Falls back to spring layout if Graphviz is not installed.
 
     For spring/circular: standard NetworkX layout.
     """
@@ -188,11 +187,7 @@ def _compute_layout(
             pass
 
         warnings.warn(
-            "Graphviz dot layout unavailable — falling back to spring layout.\n"
-            "For publication-quality figures:\n"
-            "  1. Install Graphviz from https://graphviz.org/download/\n"
-            "     (tick 'Add to PATH' on Windows)\n"
-            "  2. pip install pydot",
+            "Error in dot layout try running pip install pydot and try again",
             UserWarning, stacklevel=3,
         )
 
@@ -210,7 +205,7 @@ def _dot_layout_pydot(
 ) -> dict[str, tuple[float, float]]:
     """
     Dot layout via pydot — pure Python, works on all platforms.
-    Requires: pip install pydot  +  Graphviz in system PATH.
+    Requires: pip install pydot
     Node sizes passed as width/height so dot spaces nodes correctly.
     """
     import pydot
