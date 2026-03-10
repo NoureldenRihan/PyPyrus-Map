@@ -12,7 +12,7 @@ v4  : Round 2 — scatter + plain text nodes, len()-based sizing.
 v5  : Round 2 polish —
       - Separate sizing constants for metabolites (1-line) vs reactions (2-line)
       - Width-only expansion: height fixed per node type, width follows label len()
-      - Node sizes passed to Graphviz dot as width/height attributes so the
+      - Node sizes passed to dot as width/height attributes so the
         layout engine spaces nodes to avoid overlap — fixes canvas cramping,
         margins, and arrow visibility in one shot
       - shrinkB = half_node_width_pts + 14pt buffer (guaranteed arrowhead clearance)
@@ -30,10 +30,10 @@ Height is FIXED per node type (single/double line). Width scales with label.
 
     scatter s = w * h   (area in display points²)
 
-Graphviz sizing
+Pydot sizing
 ---------------
 We convert pt → inches (÷ 72) and pass width/height + fixedsize=true
-as node attributes. Graphviz dot then spaces nodes to prevent overlap,
+as node attributes. dot then spaces nodes to prevent overlap,
 so the rendered canvas naturally fits the content.
 """
 
