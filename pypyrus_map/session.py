@@ -173,7 +173,7 @@ class PyPyrusMap:
         Parameters
         ----------
         layout:
-            'dot' (Graphviz hierarchical, recommended) | 'spring' | 'circular'
+            'dot' (hierarchical, recommended) | 'spring' | 'circular'
         orientation:
             'portrait'  → reactions flow top-to-bottom (default, best for chains).
             'landscape' → reactions flow left-to-right (best for wide graphs).
