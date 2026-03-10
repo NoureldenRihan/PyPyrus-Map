@@ -12,7 +12,7 @@ pathway additions. This example will work on any fresh iML1515 install.
 
 Run
 ---
-    pip install "pypyrus-map[graphviz]"
+    pip install pypyrus-map
     python examples/isoprenoid_pathway.py
 """
 
@@ -90,3 +90,4 @@ except MetaboliteNotFoundError as e:
     print(f"Caught expected error: {e}")
 
 print("\nDone.")
+
