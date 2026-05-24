@@ -299,6 +299,113 @@ def _auto_figsize(
 # Core render entry point
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# FBA edge-width scaling
+# ---------------------------------------------------------------------------
+
+_EDGE_LW_MIN     = 0.5   # pt  — hairline (near-zero flux)
+_EDGE_LW_MAX     = 7.0   # pt  — fattest arrow (peak flux in this graph)
+_EDGE_LW_DEFAULT = 2.0   # pt  — uniform width when scaling is off
+
+
+def _compute_edge_widths(
+    g: nx.DiGraph,
+) -> dict[str, float]:
+    """
+    Map each reaction node ID → line width proportional to |flux|.
+
+    Widths are normalised to [_EDGE_LW_MIN, _EDGE_LW_MAX] using the
+    maximum absolute flux found in the current graph so the fattest
+    arrow always belongs to the highest-flux reaction.
+
+    Returns an empty dict when no reaction carries a flux value
+    (i.e. no FBA solution was attached), in which case the caller
+    should fall back to _EDGE_LW_DEFAULT.
+    """
+    flux_map: dict[str, float] = {}
+    for n in g.nodes:
+        if g.nodes[n].get(NODE_TYPE_KEY) == TYPE_REACTION:
+            rn: ReactionNode = g.nodes[n][NODE_DATA_KEY]
+            if rn.flux is not None:
+                flux_map[n] = abs(rn.flux)
+
+    if not flux_map:
+        return {}
+
+    max_flux = max(flux_map.values())
+    if max_flux < 1e-9:
+        # Every reaction is blocked — give all the minimum width
+        return {n: _EDGE_LW_MIN for n in flux_map}
+
+    return {
+        n: _EDGE_LW_MIN + (v / max_flux) * (_EDGE_LW_MAX - _EDGE_LW_MIN)
+        for n, v in flux_map.items()
+    }
+
+
+# ---------------------------------------------------------------------------
+# Flux filter
+# ---------------------------------------------------------------------------
+
+def _apply_flux_filter(
+    g: nx.DiGraph,
+    pg: PathwayGraph,
+    flux_filter: str,
+) -> nx.DiGraph:
+    """
+    Return a filtered copy of *g* with reactions (and orphaned metabolites)
+    removed according to *flux_filter*.
+
+    Parameters
+    ----------
+    flux_filter : 'all' | 'active' | 'blocked'
+        'all'     — no filtering (returns a plain copy).
+        'active'  — keep only reactions with |flux| > 1e-9.
+        'blocked' — keep only reactions with |flux| ≤ 1e-9 (effectively zero).
+
+    Notes
+    -----
+    * Requires a solution to be attached (pg.has_flux=True). If not, a
+      UserWarning is emitted and the unfiltered graph is returned.
+    * After removing reactions, any metabolite nodes that have no remaining
+      edges are also removed so the canvas stays tidy.
+    """
+    if flux_filter == "all":
+        return g.copy()
+
+    if not pg.has_flux:
+        warnings.warn(
+            f"flux_filter='{flux_filter}' has no effect because no FBA solution "
+            "was attached to this session. Showing all reactions.",
+            UserWarning,
+            stacklevel=4,
+        )
+        return g.copy()
+
+    filtered = g.copy()
+
+    # Identify reactions to remove
+    reactions_to_remove = [
+        n for n in filtered.nodes
+        if filtered.nodes[n].get(NODE_TYPE_KEY) == TYPE_REACTION
+        and (
+            (flux_filter == "active"  and filtered.nodes[n][NODE_DATA_KEY].is_blocked) or
+            (flux_filter == "blocked" and not filtered.nodes[n][NODE_DATA_KEY].is_blocked)
+        )
+    ]
+    filtered.remove_nodes_from(reactions_to_remove)
+
+    # Prune metabolite nodes that are now isolated
+    isolated_metabolites = [
+        n for n in list(filtered.nodes)
+        if filtered.nodes[n].get(NODE_TYPE_KEY) == TYPE_METABOLITE
+        and filtered.degree(n) == 0
+    ]
+    filtered.remove_nodes_from(isolated_metabolites)
+
+    return filtered
+
+
 def render_pathway_graph(
     pg: PathwayGraph,
     layout: Literal["dot", "spring", "circular"] = "dot",
@@ -308,6 +415,8 @@ def render_pathway_graph(
     label_mode: Literal["id", "truncate", "full"] = "id",
     show_stoichiometry: bool = False,
     show_flux_labels: bool = False,
+    flux_filter: Literal["all", "active", "blocked"] = "all",
+    scale_edge_width: bool = False,
     legend_loc: str = "upper left",
     dpi: int = 110,
     font_family: str = "DejaVu Sans",
@@ -325,6 +434,17 @@ def render_pathway_graph(
     label_mode : 'id' (default) | 'truncate' | 'full'
     show_stoichiometry : stoichiometric coefficients on edge midpoints
     show_flux_labels : flux value (4 dp) on edge midpoints (default: off)
+    flux_filter : 'all' (default) | 'active' | 'blocked'
+        Filter reactions by their flux state (requires an FBA solution).
+        'all'     — show every reaction regardless of flux (default).
+        'active'  — show only reactions carrying non-zero flux.
+        'blocked' — show only reactions with effectively zero flux.
+        Isolated metabolite nodes are automatically pruned from the canvas.
+    scale_edge_width : bool, default False
+        When True, arrow line width is scaled proportionally to |flux|.
+        The highest-flux reaction in the graph gets the fattest arrow
+        (_EDGE_LW_MAX), near-zero reactions get a hairline (_EDGE_LW_MIN).
+        Requires an FBA solution; silently uses uniform width if absent.
     legend_loc : any Matplotlib legend location string, e.g.:
         'upper left' (default), 'upper right', 'lower left', 'lower right',
         'lower center', 'upper center', 'right', 'center left', 'center right'
@@ -337,9 +457,12 @@ def render_pathway_graph(
     matplotlib.rcParams["pdf.fonttype"] = 42
     matplotlib.rcParams["svg.fonttype"] = "none"
 
-    g = pg.nx_graph
+    g = _apply_flux_filter(pg.nx_graph, pg, flux_filter)
     if g.number_of_nodes() == 0:
-        raise ValueError("Graph is empty — call session.add() before rendering.")
+        raise ValueError(
+            f"No reactions remain after applying flux_filter='{flux_filter}'. "
+            "Try a different filter or check your FBA solution."
+        )
 
     pos  = _compute_layout(g, layout, orientation, label_mode)
     w, h = _auto_figsize(g, orientation, figsize)
@@ -352,8 +475,10 @@ def render_pathway_graph(
     met_nodes = [n for n in g.nodes if g.nodes[n][NODE_TYPE_KEY] == TYPE_METABOLITE]
     rxn_nodes = [n for n in g.nodes if g.nodes[n][NODE_TYPE_KEY] == TYPE_REACTION]
 
+    edge_widths = _compute_edge_widths(g) if scale_edge_width else {}
+
     # Draw order: edges → markers → labels → legend
-    _draw_edges(ax, g, pos, pg, label_mode, show_stoichiometry, show_flux_labels)
+    _draw_edges(ax, g, pos, pg, label_mode, show_stoichiometry, show_flux_labels, edge_widths)
     _draw_metabolite_markers(ax, g, pos, met_nodes, label_mode)
     _draw_reaction_markers(ax, g, pos, rxn_nodes)
     _draw_metabolite_labels(ax, g, pos, met_nodes, label_mode)
@@ -501,7 +626,10 @@ def _draw_edges(
     label_mode: str,
     show_stoichiometry: bool,
     show_flux_labels: bool,
+    edge_widths: dict[str, float] | None = None,
 ) -> None:
+    edge_widths = edge_widths or {}
+
     for src, tgt, edata in g.edges(data=True):
         edge     = edata.get(NODE_DATA_KEY)
         tgt_type = g.nodes[tgt][NODE_TYPE_KEY]
@@ -539,6 +667,8 @@ def _draw_edges(
         shrink_b = _shrink_b(tgt_w, tgt_h)
         shrink_a = _shrink_b(src_w, src_h)   # same formula, applied to source
 
+        lw = edge_widths.get(rxn_id, _EDGE_LW_DEFAULT)
+
         base_props = dict(
             arrowstyle=arrow_style,
             linestyle=linestyle,
@@ -554,14 +684,14 @@ def _draw_edges(
             ax.annotate(
                 "",
                 xy=pos[tgt], xytext=pos[src],
-                arrowprops=dict(**base_props, color="#1A1A1A", lw=5.5),
+                arrowprops=dict(**base_props, color="#1A1A1A", lw=lw + 3.5),
                 zorder=2,
             )
 
         ax.annotate(
             "",
             xy=pos[tgt], xytext=pos[src],
-            arrowprops=dict(**base_props, color=color, lw=2.0),
+            arrowprops=dict(**base_props, color=color, lw=lw),
             zorder=3,
         )
 

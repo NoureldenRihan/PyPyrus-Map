@@ -50,7 +50,7 @@ __all__ = [
     "DEFAULT_CURRENCY_IDS",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.1.3"
 __author__ = "Nourelden Rihan"
 __license__ = "MIT"
 

@@ -163,6 +163,8 @@ class PyPyrusMap:
         label_mode: Literal["id", "truncate", "full"] = "id",
         show_stoichiometry: bool = False,
         show_flux_labels: bool = False,
+        flux_filter: Literal["all", "active", "blocked"] = "all",
+        scale_edge_width: bool = False,
         legend_loc: str = "upper left",
         dpi: int = 120,
         font_family: str = "DejaVu Sans",
@@ -190,6 +192,17 @@ class PyPyrusMap:
             Add stoichiometric coefficients to edge midpoint labels.
         show_flux_labels:
             Show flux value (4 dp) at edge midpoints when solution is attached.
+        flux_filter:
+            'all' (default) — show all reactions regardless of flux.
+            'active'        — show only reactions carrying non-zero flux.
+            'blocked'       — show only reactions with effectively zero flux.
+            Requires a COBRApy solution to be attached; falls back to 'all'
+            with a warning if none is present.
+        scale_edge_width:
+            If True, arrow line width scales with |flux| from the attached
+            FBA solution. The highest-flux reaction in the graph gets the
+            fattest arrow, near-zero reactions get a hairline. No effect
+            when no solution is provided.
         legend_loc:
             Matplotlib legend location string. Default 'upper left'. Options:
             'upper right', 'lower left', 'lower right', 'lower center',
@@ -220,6 +233,8 @@ class PyPyrusMap:
             label_mode=label_mode,
             show_stoichiometry=show_stoichiometry,
             show_flux_labels=show_flux_labels,
+            flux_filter=flux_filter,
+            scale_edge_width=scale_edge_width,
             legend_loc=legend_loc,
             dpi=dpi,
             font_family=font_family,
