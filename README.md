@@ -97,6 +97,8 @@ fig = session.render(
     label_mode="id",           # 'id' (default) | 'truncate' | 'full'
     show_flux_labels=False,    # show flux values on edge midpoints
     show_stoichiometry=False,  # show stoichiometric coefficients on edges
+    flux_filter="all",         # 'all' (default) | 'active' | 'blocked'
+    scale_edge_width=False,    # scale arrow width proportionally to |flux|
     legend_loc="upper left",   # any Matplotlib legend location string
     dpi=110,                   # screen resolution; SVG/PDF always lossless
     font_family="DejaVu Sans", # 'Arial' matches Nature/Cell/Science guidelines
@@ -122,6 +124,28 @@ fig = session.render(
 | **Magenta-pink arrow** | Consumes (metabolite → reaction) |
 | **Double-headed arrow** | Reversible reaction |
 | **Colored arrow with black outline** | Edge through a blocked reaction |
+| **Thicker arrow** | Higher flux magnitude (when `scale_edge_width=True`) |
+
+---
+
+## Flux filtering
+
+When a `cobra.Solution` is attached, you can restrict the rendered graph to only the reactions you care about using `flux_filter`:
+
+```python
+# Default — show all reactions regardless of flux
+session.render(flux_filter="all")
+
+# Show only reactions carrying non-zero flux
+session.render(flux_filter="active")
+
+# Show only completely blocked reactions (flux ≈ 0)
+session.render(flux_filter="blocked")
+```
+
+After filtering, any metabolite nodes that become isolated (no remaining reaction connections) are automatically removed from the canvas.
+
+> **Note:** `flux_filter` has no effect if no `cobra.Solution` was passed at session construction. A `UserWarning` is emitted and all reactions are shown.
 
 ---
 
@@ -134,8 +158,21 @@ solution = model.optimize()
 session = PyPyrusMap(model, solution=solution)
 session.add("ggpp_c")
 
+# Show flux values on edges
 fig = session.render(show_flux_labels=True)
+
+# Scale arrow width proportionally to |flux| — thicker = more flux
+fig = session.render(scale_edge_width=True)
+
+# Power combo: active reactions only, width and labels by flux
+fig = session.render(
+    flux_filter="active",
+    scale_edge_width=True,
+    show_flux_labels=True,
+)
 ```
+
+When `scale_edge_width=True`, widths are normalised across all reactions in the current graph: the highest-flux reaction always gets the fattest arrow, near-zero reactions get a hairline. This has no effect if no solution is attached.
 
 ---
 
